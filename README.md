@@ -2,7 +2,7 @@
 
 Flutter / Riverpod / Supabase MVP for Slovak pupils in grades 8–9. Includes a playable, account-free demo, authenticated mode, three practice mechanics, server-graded XP, streaks, private profiles, progression and an opt-in leaderboard RPC.
 
-**Status:** implementation scaffold; compilation is not yet verified. SDK download in the onboarding machine was denied by its network policy. SQL validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
+**Status:** Flutter dependencies are installed, static analysis is clean and all six tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
 
 ## Run
 
@@ -10,12 +10,15 @@ Use Flutter **3.38.5** (Dart 3.10), Git and an Android SDK/JDK for Android; macO
 
 ```sh
 export PATH="/workspace/toolchains/flutter/bin:$PATH"
+export PUB_CACHE=/workspace/toolchains/pub-cache
+export XDG_CONFIG_HOME=/workspace/toolchains/config
+export ANALYZER_STATE_LOCATION_OVERRIDE=/workspace/toolchains/analyzer-state
 cd /workspace/Vedomax
 ./scripts/bootstrap.sh
 flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 --dart-define=DEMO_MODE=true
 ```
 
-The bootstrap script generates missing Android/iOS platform shells in a temporary project and copies only missing platform directories. Review and commit generated platform files and the first resolved `pubspec.lock` in the coding workflow. Subsequent installs enforce that lockfile. It does not rewrite Dart source. A demo opens three lessons; XP remains zero and no account or network backend is used. Theme follows system dark/light preferences. The original bundled Lottie star needs no remote asset fetch. Reduced-motion preference disables its playback.
+The bootstrap script generates missing Android/iOS platform shells in a temporary project and copies only missing platform directories. The resolved `pubspec.lock` is committed. Review and commit generated platform files in the coding workflow. Subsequent installs enforce that lockfile. It does not rewrite Dart source. A demo opens three lessons; XP remains zero and no account or network backend is used. Theme follows system dark/light preferences. The original bundled Lottie star needs no remote asset fetch. Reduced-motion preference disables its playback.
 
 For a device: run `flutter devices`, then `flutter run -d <device-id>`. Android/iOS signing, store IDs, deep links and release distribution are separate release steps.
 
@@ -29,6 +32,18 @@ flutter run -d <device-id> \
   --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
   --dart-define=SUPABASE_ANON_KEY=YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY
 ```
+
+For this workspace, the supplied project connection is stored in `.env.supabase.json` (ignored by Git). Run it without putting the key in a shell command:
+
+```sh
+export PATH="/workspace/toolchains/flutter/bin:$PATH"
+export PUB_CACHE=/workspace/toolchains/pub-cache
+export XDG_CONFIG_HOME=/workspace/toolchains/config
+export ANALYZER_STATE_LOCATION_OVERRIDE=/workspace/toolchains/analyzer-state
+./scripts/run_supabase.sh -d web-server --web-hostname 0.0.0.0 --web-port 8080
+```
+
+Project: `uifthknpirbcexiqeqmx`. The configuration file must contain `DEMO_MODE: false`, `SUPABASE_URL` and `SUPABASE_ANON_KEY`. It is local configuration and will not be available from a fresh Git clone; supply these fields there before running the helper. A publishable key authenticates the application, not an administrator, and cannot apply SQL migrations.
 
 The URL and publishable/anon key are public client configuration. User JWTs supply access; RLS is essential. Do not commit private credentials or session tokens. Live signup, confirmation, login, logout and XP sync require your configured project and remain integration checks.
 

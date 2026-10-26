@@ -15,7 +15,7 @@ Future<void> main() async {
     if (url.isEmpty || key.isEmpty) {
       runApp(const MaterialApp(home: Scaffold(body: Center(child: Text('Chýba konfigurácia Supabase. Pozri README.'))))); return;
     }
-    await Supabase.initialize(url: url, anonKey: key);
+    await Supabase.initialize(url: url, publishableKey: key);
   }
   runApp(const ProviderScope(child: VedomaxApp()));
 }
