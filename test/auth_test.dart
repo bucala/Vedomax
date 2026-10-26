@@ -7,30 +7,29 @@ import 'package:vedomax/features/auth/presentation/auth_providers.dart';
 import 'package:vedomax/features/auth/presentation/login_screen.dart';
 
 class FakeAuthRepository implements AuthRepository {
-  bool googleLaunched = true;
-  int googleCalls = 0;
+  String? signedInEmail;
+  String? signedUpEmail;
   String? resentEmail;
   @override
   String? get userId => null;
   @override
-  bool get supportsGoogle => true;
-  @override
   Stream<String?> watchUserId() => const Stream<String?>.empty();
-  @override
-  Future<bool> signInWithGoogle() async {
-    googleCalls++;
-    return googleLaunched;
-  }
-
   @override
   Future<void> resendConfirmation(String email) async {
     resentEmail = email;
   }
 
   @override
-  Future<void> signIn(String email, String password) async {}
+  Future<void> signIn(String email, String password) async {
+    signedInEmail = email;
+  }
+
   @override
-  Future<bool> signUp(String email, String password) async => false;
+  Future<bool> signUp(String email, String password) async {
+    signedUpEmail = email;
+    return false;
+  }
+
   @override
   Future<void> signOut() async {}
 }
@@ -44,7 +43,7 @@ void main() {
   test('email delivery failures have actionable, sanitized messages', () {
     expect(
       authFailureForCode('email_address_not_authorized').message,
-      contains('SMTP'),
+      contains('MAIL-SETUP'),
     );
     expect(
       authFailureForCode('over_email_send_rate_limit').message,
@@ -59,26 +58,41 @@ void main() {
       isNot(contains('unknown-private-server-error')),
     );
   });
-  testWidgets('Google login does not require an email or password form', (
-    WidgetTester tester,
-  ) async {
-    final FakeAuthRepository repository = FakeAuthRepository();
-    await tester.pumpWidget(login(repository));
-    await tester.tap(find.text('Pokračovať cez Google'));
-    await tester.pumpAndSettle();
-    expect(repository.googleCalls, 1);
-    expect(find.text('Zadaj e-mail a heslo s aspoň 8 znakmi.'), findsNothing);
-  });
   testWidgets(
-    'failed browser launch is visible instead of reporting login success',
+    'email login remains available and has no Google sign-in option',
     (WidgetTester tester) async {
-      final FakeAuthRepository repository = FakeAuthRepository()
-        ..googleLaunched = false;
+      final FakeAuthRepository repository = FakeAuthRepository();
       await tester.pumpWidget(login(repository));
-      await tester.tap(find.text('Pokračovať cez Google'));
+      expect(find.textContaining('Google'), findsNothing);
+      await tester.enterText(
+        find.byType(TextField).first,
+        ' pupil@example.com ',
+      );
+      await tester.enterText(find.byType(TextField).last, 'abc123');
+      await tester.ensureVisible(find.text('Prihlásiť sa'));
+      await tester.tap(find.text('Prihlásiť sa'));
       await tester.pumpAndSettle();
+      expect(repository.signedInEmail, 'pupil@example.com');
+    },
+  );
+  testWidgets(
+    'registration requires a strong enough password and keeps confirmation guidance',
+    (WidgetTester tester) async {
+      final FakeAuthRepository repository = FakeAuthRepository();
+      await tester.pumpWidget(login(repository));
+      await tester.enterText(find.byType(TextField).first, 'pupil@example.com');
+      await tester.enterText(find.byType(TextField).last, 'abc123');
+      await tester.ensureVisible(find.text('Vytvoriť účet'));
+      await tester.tap(find.text('Vytvoriť účet'));
+      await tester.pumpAndSettle();
+      expect(repository.signedUpEmail, isNull);
+      await tester.enterText(find.byType(TextField).last, 'abc12345');
+      await tester.ensureVisible(find.text('Vytvoriť účet'));
+      await tester.tap(find.text('Vytvoriť účet'));
+      await tester.pumpAndSettle();
+      expect(repository.signedUpEmail, 'pupil@example.com');
       expect(
-        find.text('Prihlásenie Google sa neotvorilo. Skús to znova.'),
+        find.textContaining('Registráciu dokončíš potvrdením e-mailu'),
         findsOneWidget,
       );
     },

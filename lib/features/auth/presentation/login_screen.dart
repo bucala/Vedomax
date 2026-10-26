@@ -45,7 +45,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           _password.text,
         );
         if (mounted && !signedIn) {
-          setState(() => _message = 'Skontroluj e-mail a potvrď registráciu.');
+          setState(
+            () => _message =
+                'Registráciu dokončíš potvrdením e-mailu. Ak neprišiel, skontroluj spam alebo skús opätovné odoslanie.',
+          );
         }
       } else {
         await repository.signIn(_email.text.trim(), _password.text);
@@ -57,34 +60,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         setState(
           () => _message =
               'Prihlásenie sa nepodarilo. Skontroluj údaje a pripojenie.',
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _google() async {
-    setState(() {
-      _busy = true;
-      _message = null;
-    });
-    try {
-      final bool launched = await ref
-          .read(authRepositoryProvider)
-          .signInWithGoogle();
-      if (mounted && !launched) {
-        setState(
-          () => _message = 'Prihlásenie Google sa neotvorilo. Skús to znova.',
-        );
-      }
-    } on AuthFailure catch (error) {
-      if (mounted) setState(() => _message = error.message);
-    } on Object {
-      if (mounted) {
-        setState(
-          () => _message =
-              'Google prihlásenie sa nepodarilo spustiť. Skús to znova.',
         );
       }
     } finally {
@@ -142,17 +117,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             children: <Widget>[
               const Text('Uč sa. Hraj sa. Napreduj.'),
               const SizedBox(height: 24),
-              if (ref.watch(authRepositoryProvider).supportsGoogle) ...<Widget>[
-                OutlinedButton.icon(
-                  onPressed: _busy ? null : _google,
-                  icon: const Icon(Icons.login),
-                  label: const Text('Pokračovať cez Google'),
-                ),
-                const Text(
-                  'Google odovzdá Supabase e-mail a základný profil, napríklad meno a fotografiu. Herný profil používa prezývku.',
-                ),
-                const SizedBox(height: 20),
-              ],
               TextField(
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,

@@ -53,3 +53,11 @@ The auth harness is for a fresh ordinary PostgreSQL database only, never a real 
 - The first test attempt was blocked before executing any tests because the restricted sandbox prohibited local server sockets. The same suite subsequently ran with the approved local-socket execution capability and all 16 tests completed.
 - Web release build succeeded with no-pub/no-wasm-dry-run; the pre-existing CupertinoIcons font warning remains. `/workspace/scratch/vedomax-auth-return.zip` was checked for ZIP integrity and exclusion of local environment files.
 - No root cause of the user's real Google callback has been established. The update fixes loss of initialization/stream errors and provides diagnostics; actual Google sign-in must be retested after user deployment.
+
+## Current release: email-only authentication
+
+- Removed the Google button, Google repository API and OAuth launch implementation. No Google sign-in entry point remains in application source. Email/password sign-in, signup, confirmation resend and confirmation-link callback handling are retained.
+- Static analysis: no issues. All 16 tests passed, including email sign-in with an existing six-character password, eight-character minimum for new signup, confirmation instructions, no Google option and resend without a password.
+- Release web build passed; pre-existing CupertinoIcons font warning unchanged. The email-only deployment ZIP was checked for integrity and excludes environment files.
+- No auth users/profiles/progression were deleted. Google remains a server-side provider until the project owner disables it in Supabase. No admin connection exists in this environment.
+- SMTP delivery remains unverified; no test accounts or emails were sent by the agent. The project owner's SMTP configuration and mail/Auth logs are required to diagnose the original missing confirmation email. Email confirmation has not been disabled as a workaround.

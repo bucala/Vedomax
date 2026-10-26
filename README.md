@@ -2,7 +2,7 @@
 
 Flutter / Riverpod / Supabase MVP for Slovak pupils in grades 8–9. Includes a playable, account-free demo, authenticated mode, three practice mechanics, server-graded XP, streaks, private profiles, progression and an opt-in leaderboard RPC.
 
-**Status:** Flutter dependencies are installed, static analysis is clean and all ten tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
+**Status:** Flutter dependencies are installed, static analysis is clean and all 16 tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
 
 ## Run
 
@@ -51,9 +51,11 @@ Global content is read-only to authenticated clients. Users read only their own 
 
 `leaderboard()` exposes only opted-in pseudonyms and XP (top 50); full profiles remain private. The initial UI includes profile loading and XP refresh after completion; profile editing and leaderboard UI are roadmap items. Public practice hints (detective feedback) are intentionally available; this is not a proctored exam/anti-bot system.
 
-## Google sign-in and confirmation email
+## Email authentication
 
-See [AUTH_SETUP.md](docs/AUTH_SETUP.md) for exact Google OAuth origins/callbacks, the two provider switches, SMTP diagnosis and data minimization limits. The web login now includes Google OAuth (PKCE, no additional scopes), confirmation resend and sanitized delivery errors. Google Client Secret and SMTP credentials belong only in Supabase settings. A new Hosting deploy is required for these UI changes. Native Google redirects are not configured yet.
+The current app supports **email/password only**. Google sign-in has been removed from the UI and repository interface. Disable Google separately in Supabase Authentication → Sign In / Providers → Google → Save; removing a frontend button does not disable an Auth provider on the server. No account/profile/progression data is deleted by this change.
+
+See [AUTH_SETUP.md](docs/AUTH_SETUP.md) for email confirmation, custom SMTP and delivery diagnosis. Confirmation resend and sanitized delivery errors remain available. Email confirmations use the SDK's PKCE/session handling and a fixed allowlisted return URL. Do not disable confirmation to bypass missing mail delivery. Existing web callback diagnostics remain useful for confirmation links and do not initiate Google OAuth.
 
 ## Layout
 

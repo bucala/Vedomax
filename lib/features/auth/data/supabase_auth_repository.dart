@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/auth_repository.dart';
 
@@ -13,7 +12,7 @@ AuthFailure authFailureForCode(String? code) => AuthFailure(switch (code) {
   'over_email_send_rate_limit' ||
   'over_request_rate_limit' => 'Priveľa pokusov. Počkaj a skús to neskôr.',
   'email_address_not_authorized' =>
-    'Odosielanie na túto adresu nie je povolené. Správca musí nastaviť vlastné SMTP.',
+    'Potvrdzovací e-mail sa nepodarilo odoslať. Obráť sa na správcu aplikácie. [MAIL-SETUP]',
   'email_not_confirmed' =>
     'Najprv potvrď registračný e-mail. Môžeš požiadať o jeho opätovné odoslanie.',
   'email_provider_disabled' => 'Prihlasovanie e-mailom je momentálne vypnuté.',
@@ -26,8 +25,6 @@ class SupabaseAuthRepository implements AuthRepository {
   final SupabaseClient client;
   @override
   String? get userId => client.auth.currentUser?.id;
-  @override
-  bool get supportsGoogle => kIsWeb; // Native redirects require platform setup.
   @override
   Stream<String?> watchUserId() => Stream<String?>.multi((
     MultiStreamController<String?> output,
@@ -74,27 +71,6 @@ class SupabaseAuthRepository implements AuthRepository {
       emailRedirectTo: authRedirectUrl,
     );
     return response.session != null;
-  });
-
-  @override
-  Future<bool> signInWithGoogle() => _request(() async {
-    if (!supportsGoogle) {
-      throw const AuthFailure(
-        'Google prihlásenie je zatiaľ dostupné vo webovej verzii.',
-      );
-    }
-    if (Uri.base.origin != Uri.parse(authRedirectUrl).origin) {
-      throw const AuthFailure(
-        'Google prihlásenie začni na https://vedomax.web.app v tom istom prehliadači. [AUTH-ORIGIN]',
-      );
-    }
-    return client.auth.signInWithOAuth(
-      OAuthProvider.google,
-      redirectTo: authRedirectUrl,
-      // No extra scopes, offline access, or forced consent. Supabase's Google
-      // provider already requests email/profile. These cannot be removed here.
-      queryParams: <String, String>{'prompt': 'select_account'},
-    );
   });
 
   @override

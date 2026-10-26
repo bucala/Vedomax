@@ -41,7 +41,7 @@ void main() {
     final AuthFailure? failure = await completeWebAuthCallback(uri, (_) async {
       fail('must not exchange');
     });
-    expect(failure?.message, contains('AUTH-OAUTH'));
+    expect(failure?.message, contains('AUTH-LINK'));
     expect(failure?.message, isNot(contains('SECRET-DATA')));
   });
   test(

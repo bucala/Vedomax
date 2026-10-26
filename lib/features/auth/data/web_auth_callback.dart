@@ -33,8 +33,8 @@ Future<AuthFailure?> completeWebAuthCallback(
       params.containsKey('error_description')) {
     return AuthFailure(
       params['error'] == 'access_denied'
-          ? 'Prihlásenie Google bolo zrušené. Skús to znova. [AUTH-CANCELLED]'
-          : 'Google prihlásenie sa nevrátilo úspešne. Skontroluj Client ID, Client Secret a callback v Supabase. [AUTH-OAUTH]',
+          ? 'Potvrdenie účtu bolo zrušené. Skús to znova. [AUTH-CANCELLED]'
+          : 'Odkaz na potvrdenie účtu sa nepodarilo spracovať. Vyžiadaj si nový potvrdzovací e-mail. [AUTH-LINK]',
     );
   }
   try {
@@ -48,7 +48,7 @@ Future<AuthFailure?> completeWebAuthCallback(
           'flow_state_expired',
         }.contains(error.code)) {
       return const AuthFailure(
-        'Návrat z prihlásenia sa nepodarilo overiť. Otvor https://vedomax.web.app a začni prihlásenie znova v tom istom prehliadači. [AUTH-PKCE]',
+        'Potvrdzovací odkaz otvor v prehliadači, v ktorom si začal registráciu. Ak je odkaz starý, vyžiadaj si nový. [AUTH-PKCE]',
       );
     }
     return const AuthFailure(

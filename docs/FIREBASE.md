@@ -1,5 +1,7 @@
 # Firebase Hosting
 
+Current release: **email/password only**. Use `/workspace/scratch/vedomax-email-only.zip`; the older Google-login and auth-return archives below are historical. See `docs/AUTH_SETUP.md` for server-side Google disablement and SMTP setup.
+
 Firebase serves the compiled Flutter web app; Supabase continues to provide authentication and the database. Firestore, Firebase Auth and a Firebase client SDK are not required for this architecture.
 
 The repository's `firebase.json` deploys only `build/web`, never the repository root or the local Supabase configuration file. SPA rewrites support browser navigation, and no-cache headers require clients to revalidate after releases.
@@ -66,3 +68,16 @@ npx --yes firebase-tools@14 deploy --only hosting --project vedomax
 ```
 
 Google's OAuth client/provider configuration is described in `docs/AUTH_SETUP.md`; a new button alone does not enable the provider. Complete an actual sign-in after deploying. The project owner already demonstrated Firebase deployment access from their Windows Firebase CLI; no new login is normally required there.
+
+## Current email-only release — Windows PowerShell
+
+Download `/workspace/scratch/vedomax-email-only.zip` to `C:\GitHub\TEST`, then run:
+
+```powershell
+cd C:\GitHub\TEST
+Expand-Archive -Path .\vedomax-email-only.zip -DestinationPath .\email-only-release
+cd .\email-only-release\vedomax-hosting
+npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+```
+
+Use a fresh extraction directory. This publishes the new frontend; it does not modify Supabase provider settings or configure SMTP.
