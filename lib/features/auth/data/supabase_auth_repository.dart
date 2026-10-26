@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../domain/auth_repository.dart';
@@ -28,12 +29,28 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   bool get supportsGoogle => kIsWeb; // Native redirects require platform setup.
   @override
-  Stream<String?> watchUserId() async* {
-    yield userId;
-    yield* client.auth.onAuthStateChange.map(
-      (AuthState state) => state.session?.user.id,
-    );
-  }
+  Stream<String?> watchUserId() => Stream<String?>.multi((
+    MultiStreamController<String?> output,
+  ) {
+    // Subscribe before reading the snapshot so a concurrent sign-in cannot fall
+    // between the initial value and the event subscription.
+    final StreamSubscription<AuthState> subscription = client
+        .auth
+        .onAuthStateChange
+        .listen(
+          (AuthState state) => output.add(state.session?.user.id),
+          onError: (Object error, StackTrace stack) => output.addError(
+            error is AuthException
+                ? authFailureForCode(error.code)
+                : const AuthFailure(
+                    'Reláciu sa nepodarilo obnoviť. Prihlás sa znova.',
+                  ),
+            stack,
+          ),
+        );
+    output.onCancel = subscription.cancel;
+    output.add(userId);
+  });
 
   Future<T> _request<T>(Future<T> Function() operation) async {
     try {
@@ -64,6 +81,11 @@ class SupabaseAuthRepository implements AuthRepository {
     if (!supportsGoogle) {
       throw const AuthFailure(
         'Google prihlásenie je zatiaľ dostupné vo webovej verzii.',
+      );
+    }
+    if (Uri.base.origin != Uri.parse(authRedirectUrl).origin) {
+      throw const AuthFailure(
+        'Google prihlásenie začni na https://vedomax.web.app v tom istom prehliadači. [AUTH-ORIGIN]',
       );
     }
     return client.auth.signInWithOAuth(

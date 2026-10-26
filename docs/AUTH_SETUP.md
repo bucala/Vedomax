@@ -42,3 +42,13 @@ Before student rollout, complete the privacy notice, retention/account deletion 
 - After SMTP setup, use the app's resend button for your own account, check delivery, open the confirmation link in the initiating browser where possible, and verify login. Do not repeatedly resend while rate limited.
 
 Automated tests validate widget behavior and failure mapping, not the Google console configuration, actual OAuth callback, SMTP delivery or Google/Supabase account metadata contents in the live project.
+
+## Silent OAuth return diagnostic update
+
+The previous SDK-managed web callback could emit an initialization error before the application's Riverpod auth listener existed. The auth gate also rendered stream errors as a plain login screen. This explains how an error could be hidden; it does not establish the live OAuth configuration's underlying failure.
+
+For web, automatic URI detection is now disabled and the app explicitly awaits the SDK's `getSessionFromUrl` once before opening the auth gate. Native SDK URI handling is unchanged. The exchange uses the existing PKCE verifier and normal SDK session storage; verification is not disabled. A loading view and a 20-second response timeout make progress/failure visible. One-use codes and error parameters are removed from browser history without logging them. Session listeners subscribe before taking the initial snapshot.
+
+The app requires Google login to start on the configured return origin (`https://vedomax.web.app` by default), so a login started on the Firebase alias or another origin cannot silently lose access to its browser-local PKCE verifier. Use the same browser/profile/window for start and return. For deliberately configured local development, set an explicit AUTH_REDIRECT_URL and allowlist it in Supabase.
+
+Displayed diagnostic categories are fixed strings, not raw provider payloads: AUTH-ORIGIN, AUTH-OAUTH, AUTH-PKCE, AUTH-EXCHANGE, AUTH-TIMEOUT, AUTH-CONNECTION and AUTH-CANCELLED. The caller should report only that category and redacted Auth-log error codes, never callback URLs, authorization codes or tokens. Real Google login still requires a user-side acceptance test after deployment.

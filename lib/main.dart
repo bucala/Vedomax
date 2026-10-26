@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
+import 'features/auth/data/web_auth_callback.dart';
+import 'features/auth/data/callback_location_stub.dart'
+    if (dart.library.js_interop) 'features/auth/data/callback_location_web.dart';
+import 'features/auth/domain/auth_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'features/auth/presentation/auth_providers.dart';
@@ -10,6 +15,7 @@ import 'features/learning/presentation/lesson_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  AuthFailure? callbackFailure;
   if (!demoMode) {
     const String url = String.fromEnvironment('SUPABASE_URL');
     const String key = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -30,11 +36,43 @@ Future<void> main() async {
       publishableKey: key,
       authOptions: const FlutterAuthClientOptions(
         authFlowType: AuthFlowType.pkce,
+        detectSessionInUri: !kIsWeb,
       ),
     );
   }
-  runApp(const ProviderScope(child: VedomaxApp()));
+  if (!demoMode && kIsWeb && isWebAuthCallback(Uri.base)) {
+    runApp(
+      const MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Dokončujem prihlásenie…'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    callbackFailure = await completeWebAuthCallback(Uri.base, (Uri uri) async {
+      await Supabase.instance.client.auth.getSessionFromUrl(uri);
+    });
+    clearWebAuthLocation();
+  }
+  runApp(
+    ProviderScope(
+      overrides: [
+        initialAuthFailureProvider.overrideWithValue(callbackFailure),
+      ],
+      child: const VedomaxApp(),
+    ),
+  );
 }
+
+final initialAuthFailureProvider = Provider<AuthFailure?>((Ref ref) => null);
 
 class VedomaxApp extends StatelessWidget {
   const VedomaxApp({super.key});
@@ -66,11 +104,19 @@ class AuthGate extends ConsumerWidget {
         .watch(authStateProvider)
         .when(
           data: (String? id) => id == null
-              ? const LoginScreen()
+              ? LoginScreen(
+                  initialMessage: ref
+                      .watch(initialAuthFailureProvider)
+                      ?.message,
+                )
               : Dashboard(key: ValueKey<String>(id)),
           loading: () =>
               const Scaffold(body: Center(child: CircularProgressIndicator())),
-          error: (Object error, StackTrace stack) => const LoginScreen(),
+          error: (Object error, StackTrace stack) => LoginScreen(
+            initialMessage: error is AuthFailure
+                ? error.message
+                : 'Reláciu sa nepodarilo obnoviť. Prihlás sa znova.',
+          ),
         );
   }
 }

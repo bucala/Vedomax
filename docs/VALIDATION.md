@@ -46,3 +46,10 @@ The auth harness is for a fresh ordinary PostgreSQL database only, never a real 
 - Supabase public settings currently report email enabled, email confirmation required and Google disabled. Client ID/Secret/provider setup must be saved by the user. SMTP settings and delivery logs cannot be inspected with the publishable key, so the missing email's exact cause is unconfirmed.
 - Release web build succeeded. The latest recompilation skipped the already-passed Wasm dry run. The existing CupertinoIcons font warning remains; Material icons are bundled.
 - Prepared and ZIP-integrity-checked `/workspace/scratch/vedomax-google-login.zip`, excluding local environment files. This is a new release artifact; it has not been deployed to Firebase in this task. OAuth browser callback, Google consent/data claims and SMTP delivery remain unverified.
+
+## OAuth-return diagnostic update
+
+- Static analysis: no issues. All 16 tests pass, including callback exchange, provider errors without raw payload exposure, missing PKCE verifier, timeouts and visible returned-login errors.
+- The first test attempt was blocked before executing any tests because the restricted sandbox prohibited local server sockets. The same suite subsequently ran with the approved local-socket execution capability and all 16 tests completed.
+- Web release build succeeded with no-pub/no-wasm-dry-run; the pre-existing CupertinoIcons font warning remains. `/workspace/scratch/vedomax-auth-return.zip` was checked for ZIP integrity and exclusion of local environment files.
+- No root cause of the user's real Google callback has been established. The update fixes loss of initialization/stream errors and provides diagnostics; actual Google sign-in must be retested after user deployment.

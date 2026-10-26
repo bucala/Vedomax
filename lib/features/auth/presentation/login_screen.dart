@@ -4,7 +4,8 @@ import 'auth_providers.dart';
 import '../domain/auth_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({super.key, this.initialMessage});
+  final String? initialMessage;
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
@@ -14,6 +15,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final TextEditingController _password = TextEditingController();
   bool _busy = false;
   String? _message;
+
+  @override
+  void initState() {
+    super.initState();
+    _message = widget.initialMessage;
+  }
+
   Future<void> _authenticate(bool register) async {
     if (!_email.text.trim().contains('@') ||
         _password.text.isEmpty ||
