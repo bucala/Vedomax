@@ -1,0 +1,6 @@
+{
+  "name": "Vedomax",
+  "description": "Vzdelávacia hra pre 8.–9. ročník ZŠ. Precvičuj Pytagorovu vetu, odhaľuj pravopisné chyby v detektívnom režime a hľadaj miesta na slepej mape Slovenska.",
+  "permissions": [],
+  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

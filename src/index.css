@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: #6750a4;
+    --primary-foreground: #ffffff;
+    --primary-container: #eaddff;
+    --on-primary-container: #21005d;
+  }
+
+  .dark {
+    --primary: #a6e55c;
+    --primary-foreground: #1c3600;
+    --primary-container: #285000;
+    --on-primary-container: #c4ff89;
+  }
+}

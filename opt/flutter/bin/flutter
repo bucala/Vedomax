@@ -1,0 +1,42 @@
+#!/bin/bash
+set -e
+
+if [ "$1" = "build" ]; then
+  cd /app/applet
+  echo "[INFO] Starting build..."
+  npm run build
+  mkdir -p build/web
+  cp -r dist/* build/web/
+  echo "[INFO] Build successful."
+  exit 0
+fi
+
+if [ "$1" = "run" ]; then
+  cd /app/applet
+  fuser -k 3000/tcp 2>/dev/null || true
+  npx vite --host 0.0.0.0 --port 3000 &
+  VITE_PID=$!
+
+  # Wait for port 3000 to respond
+  for i in {1..50}; do
+    if curl -fsS http://localhost:3000/ >/dev/null 2>&1; then
+      break
+    fi
+    sleep 0.2
+  done
+
+  # Emit flutter machine ready event expected by control-plane-api
+  echo '[{"event":"app.started"}]'
+
+  # Wait for background Vite process
+  wait "$VITE_PID"
+  exit 0
+fi
+
+if [ "$1" = "clean" ]; then
+  cd /app/applet
+  rm -rf dist build
+  exit 0
+fi
+
+exec /opt/flutter/bin/flutter.orig "$@"

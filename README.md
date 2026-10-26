@@ -1,102 +1,35 @@
-# Vedomax
+# Vedomax (React)
 
-**Current testing workflow:** open the app without any account using `config/demo.json`. Three bundled lessons are available; no Supabase initialization, login, signup or SMTP is needed. Scores are shown for the current attempt; XP/progress are not persisted. Email authentication remains available for a later backend-enabled build.
+Vzdelávacia webová hra a precvičovanie učiva pre 8.–9. ročník základných škôl prepísaná z pôvodného Flutter projektu do moderného React + Vite + TypeScript prostredia s Tailwind CSS.
 
-Flutter / Riverpod / Supabase MVP for Slovak pupils in grades 8–9. Includes a playable, account-free demo, authenticated mode, three practice mechanics, server-graded XP, streaks, private profiles, progression and an opt-in leaderboard RPC.
+## Funkcie a herné mechaniky
 
-**Status:** Flutter dependencies are installed, static analysis is clean and all 16 tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
+1. **Matematika • Zachráň prieskumníka (Pytagorova veta)**
+   - Vizuálne znázornenie pravouhlého trojuholníka (odvesny 3 m a 4 m, prepona = rebrík k prieskumníkovi).
+   - Pomôcka $a^2 + b^2 = c^2$, validácia desatinných čísel (vrátane desatinnej čiarky) a tolerancie výpočtu.
 
-## Run
+2. **Slovenčina • Vetriť chybu (Detektívny režim)**
+   - Školský príspevok s interaktívnymi slovnými tokenmi.
+   - Tréning pravopisu s okamžitou spätnou väzbou a potvrdením nálezu.
 
-Use Flutter **3.38.5** (Dart 3.10), Git and an Android SDK/JDK for Android; macOS/Xcode is required for iOS. Web is the cloud smoke-test target; no Android emulator is required for it.
+3. **Geografia • Slepá mapa**
+   - Interaktívna slepá mapa Slovenska (pomer strán 2:1) s lokalizáciou Bojnického zámku.
+   - Možnosť umiestniť a posúvať špendlík pred potvrdením polohy s overením tolerancie.
 
-```sh
-export PATH="/workspace/toolchains/flutter/bin:$PATH"
-export PUB_CACHE=/workspace/toolchains/pub-cache
-export XDG_CONFIG_HOME=/workspace/toolchains/config
-export ANALYZER_STATE_LOCATION_OVERRIDE=/workspace/toolchains/analyzer-state
-cd /workspace/Vedomax
-./scripts/bootstrap.sh
-flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 --dart-define=DEMO_MODE=true
+4. **Herný cyklus a hodnotenie**
+   - Časový limit (odpočítavanie s lineárnym indikátorom).
+   - Zobrazenie skóre a XP odmien.
+   - Vstavaná Lottie animácia hviezdy pre úspešné splnenie s podporou `prefers-reduced-motion`.
+   - Možnosť opakovania výzvy alebo návratu do zoznamu úloh.
+
+5. **Režimy používania**
+   - **Demo režim:** Okamžité hranie bez registrácie (skóre pre aktuálny pokus, bez ukladania XP).
+   - **Režim s účtom:** Prihlásenie/registrácia e-mailom a heslom, sledovanie XP, série dní (streak) a voliteľný rebríček najlepších hráčov (Top 50).
+
+## Spustenie
+
+```bash
+npm run dev
 ```
 
-The bootstrap script generates missing Android/iOS platform shells in a temporary project and copies only missing platform directories. The resolved `pubspec.lock` is committed. Review and commit generated platform files in the coding workflow. Subsequent installs enforce that lockfile. It does not rewrite Dart source. A demo opens three lessons; XP remains zero and no account or network backend is used. Theme follows system dark/light preferences. The original bundled Lottie star needs no remote asset fetch. Reduced-motion preference disables its playback.
-
-For a device: run `flutter devices`, then `flutter run -d <device-id>`. Android/iOS signing, store IDs, deep links and release distribution are separate release steps.
-
-## Supabase
-
-Create a development Supabase project. Apply `supabase/migrations/202610260001_core.sql` in the SQL editor or via Supabase CLI, then `supabase/seed.sql`. Seeds are repeatable and preserve existing rows. Enable email/password auth with email confirmation; configure redirect allowlists and SMTP in Supabase. Profiles are created by the auth trigger. Never put a service-role key in the app.
-
-```sh
-flutter run -d <device-id> \
-  --dart-define=DEMO_MODE=false \
-  --dart-define=SUPABASE_URL=https://YOUR_PROJECT.supabase.co \
-  --dart-define=SUPABASE_ANON_KEY=YOUR_PUBLIC_PUBLISHABLE_OR_ANON_KEY
-```
-
-For this workspace, the supplied project connection is stored in `.env.supabase.json` (ignored by Git). Run it without putting the key in a shell command:
-
-```sh
-export PATH="/workspace/toolchains/flutter/bin:$PATH"
-export PUB_CACHE=/workspace/toolchains/pub-cache
-export XDG_CONFIG_HOME=/workspace/toolchains/config
-export ANALYZER_STATE_LOCATION_OVERRIDE=/workspace/toolchains/analyzer-state
-./scripts/run_supabase.sh -d web-server --web-hostname 0.0.0.0 --web-port 8080
-```
-
-Project: `uifthknpirbcexiqeqmx`. The configuration file must contain `DEMO_MODE: false`, `SUPABASE_URL` and `SUPABASE_ANON_KEY`. It is local configuration and will not be available from a fresh Git clone; supply these fields there before running the helper. A publishable key authenticates the application, not an administrator, and cannot apply SQL migrations.
-
-The URL and publishable/anon key are public client configuration. User JWTs supply access; RLS is essential. Do not commit private credentials or session tokens. Live signup, confirmation, login, logout and XP sync require your configured project and remain integration checks.
-
-Global content is read-only to authenticated clients. Users read only their own profile/progression and can update their username/avatar/leaderboard consent. **Progression writes go through `begin_lesson` / `submit_lesson`**, rather than direct table updates. The server owns XP, streak and high score; improving a best score earns only its delta. Repeat completion cannot farm XP. Attempts expire by server time; five seconds allow submission transit. Starting again replaces that user's existing attempt for the lesson. Concurrent tabs are not independent attempts.
-
-`leaderboard()` exposes only opted-in pseudonyms and XP (top 50); full profiles remain private. The initial UI includes profile loading and XP refresh after completion; profile editing and leaderboard UI are roadmap items. Public practice hints (detective feedback) are intentionally available; this is not a proctored exam/anti-bot system.
-
-## Build the account-free test version
-
-```sh
-./scripts/build_demo.sh
-flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 --dart-define-from-file=config/demo.json
-```
-
-The build helper uses only the public demo configuration and never reads `.env.supabase.json`. Do not pass the Supabase config when preparing the account-free release. The demo does not change RLS, email confirmation, users, profiles or progress in the hosted database.
-
-## Email authentication (optional later)
-
-The current app supports **email/password only**. Google sign-in has been removed from the UI and repository interface. Disable Google separately in Supabase Authentication → Sign In / Providers → Google → Save; removing a frontend button does not disable an Auth provider on the server. No account/profile/progression data is deleted by this change.
-
-See [AUTH_SETUP.md](docs/AUTH_SETUP.md) for email confirmation, custom SMTP and delivery diagnosis. Confirmation resend and sanitized delivery errors remain available. Email confirmations use the SDK's PKCE/session handling and a fixed allowlisted return URL. Do not disable confirmation to bypass missing mail delivery. Existing web callback diagnostics remain useful for confirmation links and do not initiate Google OAuth.
-
-## Layout
-
-```text
-lib/
-  core/providers.dart
-  main.dart
-  features/
-    auth/
-      domain/auth_repository.dart
-      data/supabase_auth_repository.dart
-      presentation/{auth_providers,login_screen}.dart
-    profile/
-      domain/profile.dart
-      data/supabase_profile_repository.dart
-      presentation/profile_providers.dart
-    learning/
-      domain/lesson.dart
-      data/learning_repositories.dart
-      presentation/{gameplay_controller,lesson_screen}.dart
-      presentation/widgets/mechanics.dart
-assets/{animations/success.json,maps/slovakia.png}
-supabase/{migrations/,seed.sql,tests/}
-test/gameplay_test.dart
-scripts/bootstrap.sh
-docs/{ROADMAP,CURRICULUM,VALIDATION}.md
-```
-
-Domain interfaces isolate Supabase transport. Riverpod supplies repositories and authentication state. Profile loading is scoped by current user; a successful server submission invalidates it. The auto-disposed lesson controller owns question index, answers, score, wall-clock deadline and animation trigger. Responses after disposal cannot mutate state. Retry starts a fresh attempt; failed sync is shown as an error instead of fabricated success. RPC grading is transactional and serializes rewards with a profile-row lock.
-
-Mechanics: a CustomPainter right triangle and decimal input; tappable detective tokens with check/cross plus green/red feedback; an aspect-ratio-locked map image with normalized coordinates, a custom pin and server radius validation. The map is an original schematic, not official cartography. Its viewport is longitude 16.8–22.6, latitude 47.6–49.65; Bojnice maps approximately to (0.307, 0.424). The radius is measured in normalized image axes, not kilometres.
-
-`rpg_chat`, `drag_drop`, theory and boss-fight types are reserved in the schema; their gameplay is not implemented in this MVP.
+Aplikácia beží na porte 3000 (`http://0.0.0.0:3000`).
