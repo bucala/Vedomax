@@ -14,4 +14,4 @@ fi
 if [[ -f pubspec.lock ]]; then flutter pub get --enforce-lockfile; else flutter pub get; fi
 flutter analyze
 flutter test
-flutter build web --release --dart-define=DEMO_MODE=true
+flutter build web --release --no-web-resources-cdn --dart-define-from-file=config/demo.json

@@ -1,6 +1,6 @@
 {
   "name": "Vedomax",
-  "description": "Vzdelávacia hra pre 8.–9. ročník ZŠ. Precvičuj Pytagorovu vetu, odhaľuj pravopisné chyby v detektívnom režime a hľadaj miesta na slepej mape Slovenska.",
+  "description": "Vedomax - Vedomosti na Maximum pre všetky deti. Flutter aplikácia s 336 otázkami a denným plánom pre 8. a 9. ročník.",
   "permissions": [],
-  "capabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "capabilities": []
 }

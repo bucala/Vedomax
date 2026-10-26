@@ -6,3 +6,15 @@ build/
 !.env.example
 android/local.properties
 **/ephemeral/
+.flutter-plugins-dependencies
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+.idea/
+*.iml
+.metadata
+supabase/.temp/
+assets/maps/cities15000.zip
+test/failures/
+output/

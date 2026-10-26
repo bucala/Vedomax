@@ -1,0 +1,37 @@
+name: vedomax
+description: Vedomax – Vedomosti na Maximum pre všetky deti.
+publish_to: none
+version: 2.0.0+2
+environment:
+  sdk: '>=3.12.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: 2.5.6
+  supabase_flutter: 2.18.3
+  timezone: 0.11.2
+  web: 1.1.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  http: 1.6.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/brand/
+    - assets/content/
+    - assets/maps/countries.geojson
+    - assets/mascot/vedomax_still.png
+    - assets/mascot/vedomax_idle_wave.webp
+    - assets/mascot/vedomax_celebrate.webp
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/roboto-regular.ttf
+        - asset: assets/fonts/roboto-bold.ttf
+          weight: 700
+        - asset: assets/fonts/roboto-black.ttf
+          weight: 900

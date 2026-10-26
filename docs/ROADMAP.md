@@ -1,12 +1,12 @@
-# MVP implementation and release sequence
+# Ďalšie kroky po verzii 2.0
 
-1. **Development environment:** allow `storage.googleapis.com`, install Flutter 3.38.5, run `scripts/bootstrap.sh`, commit generated Android/iOS shells and dependency lockfile after review. Run analyzer, all six current Flutter checks and release web build. Add CI using the same pinned Flutter release and committed lockfile. Android requires JDK/SDK, iOS requires a macOS runner.
-2. **Backend:** create separate development/staging/production Supabase projects. Apply versioned migrations then repeatable seed. Run local SQL isolation/reward tests (`docs/VALIDATION.md`) and repeat against a disposable Supabase project. Confirm API grants, confirmation email, auth redirect URLs and token refresh. Back up before production migration.
-3. **Curriculum inventory:** use `CURRICULUM.md` to review the 18 topic candidates for all nine subjects and both grades against official iŠVP and school ŠkVP. Record performance/content standards per topic and question; build a reviewed publication workflow. Do not launch with placeholder alignment claims.
-4. **Vertical slice:** run the three practice lessons on physical Android/iOS devices; verify keyboard decimal comma, 30-second detective deadline, map tap accuracy across screen sizes, retry, successful animation, wrong answers and loss of network. Test lifecycle/backgrounding and server expiration. Provide a non-map alternative for screen-reader users before release.
-5. **Content MVP:** author 3–5 reviewed topics per subject per grade with theory, practice, explanations and a boss fight. Implement missing mechanics with typed JSON validation and a server grader before publishing those lesson types. Import editorial JSON transactionally; validate all question schemas, answer keys and map asset versions. Never ship service credentials in seed or client assets.
-6. **Student experience:** add opt-in leaderboard UI, profile editing, subject/grade navigation, skill path and progression history. Add localized date/number handling and Slovak accessibility labels. Include offline/reconnect guidance; server-graded rewards must not pretend to sync while offline. Add tests for alternate mechanics, timer expiry, navigation/disposal and stale auth.
-7. **Integration/security:** exercise RLS as two real users plus anonymous requests, malicious XP/score writes, expired/repeated submissions, simultaneous attempts, account deletion and revoked sessions. Add rate limiting and abuse controls, password recovery and secure auth error telemetry without personal data. Test leaderboard consent and ensure public names reveal no school/location data.
-8. **Pilot and release:** teacher sign-off, school/guardian consent process appropriate for minors, privacy/retention/deletion policy and store disclosures. Test contrast, 200% text, reduced motion, touch targets and screen readers. Establish crash monitoring, backup recovery and a small supervised pilot; then sign Android/iOS builds and roll out gradually. Lottie is locally bundled; externally sourced LottieFiles assets need license review and attribution.
+Implementované: skutočný Flutter frontend, logo a maskot V, hlavné menu, nastavenia, dvojtýždňový plán 336 otázok pre dva ročníky, vysvetlenie pred bodmi, mapové vzdialenosti, lokálny pokrok a zabezpečené serverové vyhodnocovanie so synchronizáciou profilu.
 
-Current delivery covers the architecture, SQL, demo mechanics and initial tests; it does not claim complete nine-subject content, live backend configuration or store-ready releases.
+Zostávajúce samostatné vydania:
+
+1. Pedagogická kontrola otázok podľa školského ŠkVP; rozšírenie nad tri aktuálne oblasti.
+2. Nasadenie pripraveného webového release na Firebase a overenie reálneho prihlásenia, potvrdenia e-mailu a SMTP doručenia.
+3. Generovanie a overenie Android/iOS projektov, podpisovanie a testovanie na fyzických zariadeniach.
+4. Rozšírenie účtu o obnovu hesla a ďalší obsah po štrnástom dni.
+
+Presný rozsah overenia aktuálneho vydania je v [VALIDATION.md](VALIDATION.md).

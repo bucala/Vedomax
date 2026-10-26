@@ -1,96 +1,22 @@
-# Firebase Hosting
+# Firebase Hosting – Flutter 2.0
 
-Current test release: **no login or account required**. Use `/workspace/scratch/vedomax-demo.zip`. It is compiled with `config/demo.json` and uses three bundled lessons without connecting to Supabase. The older email-only/Google-login/auth-return archives below are historical.
-
-Firebase serves the compiled Flutter web app; Supabase continues to provide authentication and the database. Firestore, Firebase Auth and a Firebase client SDK are not required for this architecture.
-
-The repository's `firebase.json` deploys only `build/web`, never the repository root or the local Supabase configuration file. SPA rewrites support browser navigation, and no-cache headers require clients to revalidate after releases.
-
-## Deployment prerequisites
-
-- The actual Firebase **Project ID**, found in Firebase Console → Project settings → General. Do not substitute the project display name or the Supabase project reference.
-- Hosting enabled in that Firebase project.
-- A user authenticated to Firebase CLI with permission to deploy Hosting. A public Supabase key is not a Firebase deployment credential. Never paste account passwords, login codes or service-account keys into chat.
-
-Firebase Console alone does not run terminal commands or upload an arbitrary Flutter source repository. A browser-only workflow can use **Google Cloud Shell** (https://shell.cloud.google.com/) for its terminal, authenticated to the intended Google account. This is separate from the Supabase SQL Editor.
-
-## Build in the prepared development workspace
-
-```sh
-cd /workspace/Vedomax
-export PATH="/workspace/toolchains/flutter/bin:$PATH"
-export PUB_CACHE=/workspace/toolchains/pub-cache
-export XDG_CONFIG_HOME=/workspace/toolchains/config
-export ANALYZER_STATE_LOCATION_OVERRIDE=/workspace/toolchains/analyzer-state
-flutter pub get --enforce-lockfile
-flutter analyze --no-pub
-flutter test --no-pub
-flutter build web --release --dart-define-from-file=.env.supabase.json
-```
-
-For browser-only deployment, transfer the prepared `build/web` directory and `firebase.json` to Cloud Shell, preserving their relative paths. This avoids installing Flutter again in Cloud Shell. Do not upload `.env.supabase.json` or private credentials. Compiled web assets necessarily contain the public Supabase URL and publishable key; access is protected by Supabase RLS and user authentication.
-
-## Deploy from the directory containing firebase.json
-
-Run in a terminal (Cloud Shell is suitable), never in Supabase SQL Editor. The selected project ID is `vedomax`:
-
-```sh
-npx --yes firebase-tools@14 login --no-localhost
-npx --yes firebase-tools@14 deploy --only hosting --project vedomax
-```
-
-Complete Google authorization only in Google's browser flow. The CLI prints the actual Hosting URL after successful deployment; do not assume a project ID or invent a publication URL. Deployment publishes the web application, not a native Android/iOS package.
-
-After publication, in Supabase → Authentication → URL Configuration, set the Site URL to the actual Hosting URL and allow only the specific redirect paths needed for your authentication flow. Test registration, email confirmation, login, lesson completion and profile XP persistence on the published site. Do not declare hosted mode working from a static HTML response alone.
-
-## Prepared browser-only bundle
-
-The current cloud workspace has `/workspace/scratch/vedomax-firebase.zip`, built with the supplied public Supabase configuration. This artifact is not committed to Git. Download it, upload it through the Cloud Shell menu (Upload), and run:
-
-```sh
-unzip vedomax-firebase.zip
-cd vedomax-hosting
-npx --yes firebase-tools@14 login --no-localhost
-npx --yes firebase-tools@14 deploy --only hosting --project vedomax
-```
-
-The ZIP contains `firebase.json`, `.firebaserc` and `build/web` under `vedomax-hosting/`. It excludes local environment configuration and source secrets. Use an empty extraction directory for a fresh release. The user must complete Google authentication and have Hosting deployment access to this project. The selected ID has not yet been validated through an authenticated Firebase API operation. This archive was created before native Android/iOS packaging and is for web Hosting only.
-
-## Updated Google-login release on Windows PowerShell
-
-Use the new `/workspace/scratch/vedomax-google-login.zip` artifact; the original ZIP predates Google login. Download it into `C:\GitHub\TEST`, then run in **PowerShell**, not Supabase SQL Editor:
+The application genuinely builds with Flutter. Both `flutter build web` and `npm run build` produce **build/web**, matching `firebase.json`.
 
 ```powershell
-cd C:\GitHub\TEST
-Expand-Archive -Path .\vedomax-google-login.zip -DestinationPath .\google-login-release
-cd .\google-login-release\vedomax-hosting
-npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+cd C:\GitHub\Vedomax
+npm run build
+# Run only when you intend to update the public site:
+npx firebase-tools deploy --only hosting --project vedomax
 ```
 
-Google's OAuth client/provider configuration is described in `docs/AUTH_SETUP.md`; a new button alone does not enable the provider. Complete an actual sign-in after deploying. The project owner already demonstrated Firebase deployment access from their Windows Firebase CLI; no new login is normally required there.
+The build launcher uses ignored `.env.supabase.json` if present. Only public/publishable client configuration is compiled in; RLS and server grading protect account progression. Never compile a service-role key.
 
-## Current email-only release — Windows PowerShell
+Guest-only build:
 
-Download `/workspace/scratch/vedomax-email-only.zip` to `C:\GitHub\TEST`, then run:
-
-```powershell
-cd C:\GitHub\TEST
-Expand-Archive -Path .\vedomax-email-only.zip -DestinationPath .\email-only-release
-cd .\email-only-release\vedomax-hosting
-npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+```sh
+flutter build web --release --no-web-resources-cdn --dart-define-from-file=config/demo.json
 ```
 
-Use a fresh extraction directory. This publishes the new frontend; it does not modify Supabase provider settings or configure SMTP.
+Guest mode saves progress on this device and exposes all 336 questions without an account or SMTP. ZIP names in historical release notes are no longer current artifacts.
 
-## Current account-free test release — Windows PowerShell
-
-Download `/workspace/scratch/vedomax-demo.zip` to `C:\GitHub\TEST`, then run:
-
-```powershell
-cd C:\GitHub\TEST
-Expand-Archive -Path .\vedomax-demo.zip -DestinationPath .\demo-release
-cd .\demo-release\vedomax-hosting
-npx --yes firebase-tools@14 deploy --only hosting --project vedomax
-```
-
-After deployment, open https://vedomax.web.app and hard-refresh. The dashboard should say “DEMO • Bez účtu • XP sa neukladá”, expose all three practice lessons and show no login form. No domain purchase, SMTP setup, account creation or Supabase changes are required for this test build. Progress is not persisted across visits; each demo attempt awards zero stored XP. This is a web-testing release, not full nine-subject content.
+The connected Supabase database was updated and checked. **Firebase Hosting was not deployed.** The local release directory is ready. After publication, verify real email login, confirmation return and profile sync in the published browser application.

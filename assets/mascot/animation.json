@@ -1,0 +1,22 @@
+{
+  "idle_wave": {
+    "frames": 60,
+    "fps": 20,
+    "bytes": 851448,
+    "size": [
+      384,
+      384
+    ],
+    "transparent": true
+  },
+  "celebrate": {
+    "frames": 36,
+    "fps": 20,
+    "bytes": 509958,
+    "size": [
+      384,
+      384
+    ],
+    "transparent": true
+  }
+}
