@@ -37,3 +37,12 @@ docker rm -f vedomax-db
 ```
 
 The auth harness is for a fresh ordinary PostgreSQL database only, never a real Supabase instance. Docker daemon routing and proxy/CA configuration must follow the cloud runtime skill when using a managed cloud environment.
+
+## Google-login update
+
+- Added web Google sign-in via Supabase PKCE, fixed production return URL, account selection and no additional permission scopes/offline request. Native Google login remains unavailable until platform callbacks are configured.
+- Added confirmation resend and sanitized auth error messages. Login accepts an existing nonempty password while new registrations require at least eight characters.
+- Static analysis: no issues. All 10 tests pass, including Google login without password entry, failed browser launch, confirmation resend and safe mail-error mapping.
+- Supabase public settings currently report email enabled, email confirmation required and Google disabled. Client ID/Secret/provider setup must be saved by the user. SMTP settings and delivery logs cannot be inspected with the publishable key, so the missing email's exact cause is unconfirmed.
+- Release web build succeeded. The latest recompilation skipped the already-passed Wasm dry run. The existing CupertinoIcons font warning remains; Material icons are bundled.
+- Prepared and ZIP-integrity-checked `/workspace/scratch/vedomax-google-login.zip`, excluding local environment files. This is a new release artifact; it has not been deployed to Firebase in this task. OAuth browser callback, Google consent/data claims and SMTP delivery remain unverified.

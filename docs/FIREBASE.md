@@ -53,3 +53,16 @@ npx --yes firebase-tools@14 deploy --only hosting --project vedomax
 ```
 
 The ZIP contains `firebase.json`, `.firebaserc` and `build/web` under `vedomax-hosting/`. It excludes local environment configuration and source secrets. Use an empty extraction directory for a fresh release. The user must complete Google authentication and have Hosting deployment access to this project. The selected ID has not yet been validated through an authenticated Firebase API operation. This archive was created before native Android/iOS packaging and is for web Hosting only.
+
+## Updated Google-login release on Windows PowerShell
+
+Use the new `/workspace/scratch/vedomax-google-login.zip` artifact; the original ZIP predates Google login. Download it into `C:\GitHub\TEST`, then run in **PowerShell**, not Supabase SQL Editor:
+
+```powershell
+cd C:\GitHub\TEST
+Expand-Archive -Path .\vedomax-google-login.zip -DestinationPath .\google-login-release
+cd .\google-login-release\vedomax-hosting
+npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+```
+
+Google's OAuth client/provider configuration is described in `docs/AUTH_SETUP.md`; a new button alone does not enable the provider. Complete an actual sign-in after deploying. The project owner already demonstrated Firebase deployment access from their Windows Firebase CLI; no new login is normally required there.

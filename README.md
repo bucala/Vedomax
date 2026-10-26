@@ -2,7 +2,7 @@
 
 Flutter / Riverpod / Supabase MVP for Slovak pupils in grades 8–9. Includes a playable, account-free demo, authenticated mode, three practice mechanics, server-graded XP, streaks, private profiles, progression and an opt-in leaderboard RPC.
 
-**Status:** Flutter dependencies are installed, static analysis is clean and all six tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
+**Status:** Flutter dependencies are installed, static analysis is clean and all ten tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
 
 ## Run
 
@@ -50,6 +50,10 @@ The URL and publishable/anon key are public client configuration. User JWTs supp
 Global content is read-only to authenticated clients. Users read only their own profile/progression and can update their username/avatar/leaderboard consent. **Progression writes go through `begin_lesson` / `submit_lesson`**, rather than direct table updates. The server owns XP, streak and high score; improving a best score earns only its delta. Repeat completion cannot farm XP. Attempts expire by server time; five seconds allow submission transit. Starting again replaces that user's existing attempt for the lesson. Concurrent tabs are not independent attempts.
 
 `leaderboard()` exposes only opted-in pseudonyms and XP (top 50); full profiles remain private. The initial UI includes profile loading and XP refresh after completion; profile editing and leaderboard UI are roadmap items. Public practice hints (detective feedback) are intentionally available; this is not a proctored exam/anti-bot system.
+
+## Google sign-in and confirmation email
+
+See [AUTH_SETUP.md](docs/AUTH_SETUP.md) for exact Google OAuth origins/callbacks, the two provider switches, SMTP diagnosis and data minimization limits. The web login now includes Google OAuth (PKCE, no additional scopes), confirmation resend and sanitized delivery errors. Google Client Secret and SMTP credentials belong only in Supabase settings. A new Hosting deploy is required for these UI changes. Native Google redirects are not configured yet.
 
 ## Layout
 
