@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/learning.dart';
 import 'animated_mascot.dart';
+import 'motion.dart';
 export 'animated_mascot.dart';
 
 const teal = Color(0xff087f8c);
@@ -50,64 +51,76 @@ class GameButton extends StatefulWidget {
 
 class _GameButtonState extends State<GameButton> {
   bool down = false;
+  bool hovered = false;
+  bool focused = false;
   @override
-  Widget build(BuildContext context) => AnimatedPadding(
-    duration: MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : const Duration(milliseconds: 90),
-    padding: EdgeInsets.only(top: down ? 4 : 0, bottom: down ? 0 : 4),
-    child: Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(17),
-        boxShadow: widget.onPressed == null
-            ? []
-            : [
-                BoxShadow(
-                  color: Color.lerp(widget.color, Colors.black, .24)!,
-                  offset: Offset(0, down ? 0 : 4),
-                ),
-              ],
-      ),
-      child: SizedBox(
-        width: widget.expand ? double.infinity : null,
-        height: 52,
-        child: Listener(
-          onPointerDown: widget.onPressed == null
-              ? null
-              : (_) => setState(() => down = true),
-          onPointerUp: (_) => setState(() => down = false),
-          onPointerCancel: (_) => setState(() => down = false),
-          child: FilledButton(
-            onPressed: widget.onPressed,
-            onHover: (_) {},
-            onFocusChange: (_) {},
-            style: FilledButton.styleFrom(
-              backgroundColor: widget.color,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              textStyle: const TextStyle(
-                fontFamily: 'Roboto',
-                fontWeight: FontWeight.w800,
-                fontSize: 15,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (widget.icon != null) ...[
-                  Icon(widget.icon, size: 20),
-                  const SizedBox(width: 10),
+  Widget build(BuildContext context) => AnimatedScale(
+    scale: MediaQuery.disableAnimationsOf(context)
+        ? 1
+        : down
+        ? .985
+        : (hovered || focused)
+        ? 1.012
+        : 1,
+    duration: motionDuration(context, 120),
+    child: AnimatedPadding(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 90),
+      padding: EdgeInsets.only(top: down ? 4 : 0, bottom: down ? 0 : 4),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(17),
+          boxShadow: widget.onPressed == null
+              ? []
+              : [
+                  BoxShadow(
+                    color: Color.lerp(widget.color, Colors.black, .24)!,
+                    offset: Offset(0, down ? 0 : 4),
+                  ),
                 ],
-                Flexible(
-                  child: Text(widget.label, textAlign: TextAlign.center),
+        ),
+        child: SizedBox(
+          width: widget.expand ? double.infinity : null,
+          height: 52,
+          child: Listener(
+            onPointerDown: widget.onPressed == null
+                ? null
+                : (_) => setState(() => down = true),
+            onPointerUp: (_) => setState(() => down = false),
+            onPointerCancel: (_) => setState(() => down = false),
+            child: FilledButton(
+              onPressed: widget.onPressed,
+              onHover: (v) => setState(() => hovered = v),
+              onFocusChange: (v) => setState(() => focused = v),
+              style: FilledButton.styleFrom(
+                backgroundColor: widget.color,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ],
+                textStyle: const TextStyle(
+                  fontFamily: 'Roboto',
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (widget.icon != null) ...[
+                    Icon(widget.icon, size: 20),
+                    const SizedBox(width: 10),
+                  ],
+                  Flexible(
+                    child: Text(widget.label, textAlign: TextAlign.center),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/learning.dart';
 import '../services/app_store.dart';
 import '../widgets/game_widgets.dart';
+import '../widgets/motion.dart';
 
 enum LessonPhase {
   loading,
@@ -299,50 +300,60 @@ class _LessonScreenState extends State<LessonScreen> {
                           padding: const EdgeInsets.only(bottom: 12),
                           child: Semantics(
                             selected: selected == entry.key,
-                            child: OutlinedButton(
-                              onPressed: revealed
-                                  ? null
-                                  : () => setState(() => selected = entry.key),
-                              style: OutlinedButton.styleFrom(
-                                alignment: Alignment.centerLeft,
-                                padding: const EdgeInsets.all(18),
-                                foregroundColor: cs.onSurface,
-                                disabledForegroundColor: cs.onSurface,
-                                side: BorderSide(color: border, width: 2),
-                                backgroundColor: correct
-                                    ? teal.withValues(alpha: .1)
-                                    : selected == entry.key
-                                    ? violet.withValues(alpha: .08)
-                                    : null,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(18),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 28,
-                                    height: 28,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(color: border),
-                                    ),
-                                    child: correct
-                                        ? const Icon(Icons.check, size: 18)
-                                        : Text('${entry.key + 1}'),
+                            child: AnimatedScale(
+                              scale:
+                                  selected == entry.key &&
+                                      !widget.store.reducedMotion &&
+                                      !MediaQuery.disableAnimationsOf(context)
+                                  ? 1.012
+                                  : 1,
+                              duration: motionDuration(context, 160),
+                              child: OutlinedButton(
+                                onPressed: revealed
+                                    ? null
+                                    : () =>
+                                          setState(() => selected = entry.key),
+                                style: OutlinedButton.styleFrom(
+                                  alignment: Alignment.centerLeft,
+                                  padding: const EdgeInsets.all(18),
+                                  foregroundColor: cs.onSurface,
+                                  disabledForegroundColor: cs.onSurface,
+                                  side: BorderSide(color: border, width: 2),
+                                  backgroundColor: correct
+                                      ? teal.withValues(alpha: .1)
+                                      : selected == entry.key
+                                      ? violet.withValues(alpha: .08)
+                                      : null,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18),
                                   ),
-                                  const SizedBox(width: 14),
-                                  Expanded(
-                                    child: Text(
-                                      entry.value,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 28,
+                                      height: 28,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(color: border),
+                                      ),
+                                      child: correct
+                                          ? const Icon(Icons.check, size: 18)
+                                          : Text('${entry.key + 1}'),
+                                    ),
+                                    const SizedBox(width: 14),
+                                    Expanded(
+                                      child: Text(
+                                        entry.value,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
                           ),
@@ -458,61 +469,68 @@ class _LessonScreenState extends State<LessonScreen> {
                     ],
                   ],
                   if (phase == LessonPhase.points && feedback != null)
-                    Panel(
-                      child: Column(
-                        children: [
-                          Mascot(
-                            size: 160,
-                            animated: !widget.store.reducedMotion,
-                            motion: feedback.points == 100
-                                ? MascotMotion.celebrate
-                                : MascotMotion.idle,
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            feedback.points == 100
-                                ? 'Výborne, máš to!'
-                                : feedback.points > 0
-                                ? 'Dobrý smer!'
-                                : 'Každá otázka ťa posúva.',
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.w800,
+                    CelebrationBurst(
+                      enabled:
+                          feedback.points == 100 && !widget.store.reducedMotion,
+                      child: Panel(
+                        child: Column(
+                          children: [
+                            Mascot(
+                              size: 160,
+                              animated: !widget.store.reducedMotion,
+                              motion: feedback.points == 100
+                                  ? MascotMotion.celebrate
+                                  : MascotMotion.idle,
                             ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          CountUp(
-                            value: feedback.points,
-                            suffix: ' / 100 bodov',
-                            style: const TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                              color: teal,
+                            const SizedBox(height: 12),
+                            Text(
+                              feedback.points == 100
+                                  ? 'Výborne, máš to!'
+                                  : feedback.points > 0
+                                  ? 'Dobrý smer!'
+                                  : 'Každá otázka ťa posúva.',
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w800,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                          ),
-                          const SizedBox(height: 20),
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0, end: feedback.points / 100),
-                            duration: MediaQuery.disableAnimationsOf(context)
-                                ? Duration.zero
-                                : const Duration(milliseconds: 900),
-                            builder: (_, v, _) => LinearProgressIndicator(
-                              value: v,
-                              minHeight: 12,
-                              color: teal,
-                              borderRadius: BorderRadius.circular(12),
+                            const SizedBox(height: 16),
+                            CountUp(
+                              value: feedback.points,
+                              suffix: ' / 100 bodov',
+                              style: const TextStyle(
+                                fontSize: 32,
+                                fontWeight: FontWeight.w900,
+                                color: teal,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 28),
-                          GameButton(
-                            label: index == 3
-                                ? 'Dokončiť oblasť'
-                                : 'Ďalšia otázka',
-                            icon: Icons.arrow_forward_rounded,
-                            onPressed: next,
-                          ),
-                        ],
+                            const SizedBox(height: 20),
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(
+                                begin: 0,
+                                end: feedback.points / 100,
+                              ),
+                              duration: MediaQuery.disableAnimationsOf(context)
+                                  ? Duration.zero
+                                  : const Duration(milliseconds: 900),
+                              builder: (_, v, _) => LinearProgressIndicator(
+                                value: v,
+                                minHeight: 12,
+                                color: teal,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            GameButton(
+                              label: index == 3
+                                  ? 'Dokončiť oblasť'
+                                  : 'Ďalšia otázka',
+                              icon: Icons.arrow_forward_rounded,
+                              onPressed: next,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   if (phase == LessonPhase.saving)
@@ -532,62 +550,68 @@ class _LessonScreenState extends State<LessonScreen> {
                       ),
                     ),
                   if (phase == LessonPhase.finished)
-                    Panel(
-                      child: Column(
-                        children: [
-                          const Icon(
-                            Icons.emoji_events_rounded,
-                            color: amber,
-                            size: 64,
-                          ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'Oblasť dokončená!',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w900,
+                    CelebrationBurst(
+                      enabled: !widget.store.reducedMotion,
+                      child: Panel(
+                        child: Column(
+                          children: [
+                            const Icon(
+                              Icons.emoji_events_rounded,
+                              color: amber,
+                              size: 64,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text('Štyri otázky. O kúsok viac vedomostí.'),
-                          const SizedBox(height: 24),
-                          CountUp(
-                            value: results.fold<int>(0, (s, r) => s + r.points),
-                            suffix: ' / 400 bodov',
-                            style: const TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w900,
-                              color: teal,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            '+$awarded XP',
-                            style: const TextStyle(
-                              fontSize: 22,
-                              color: violet,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          if (awarded == 0)
-                            const Padding(
-                              padding: EdgeInsets.only(top: 8),
-                              child: Text(
-                                'XP získaš pri zlepšení svojho najlepšieho výsledku.',
-                                textAlign: TextAlign.center,
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Oblasť dokončená!',
+                              style: TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
                               ),
                             ),
-                          const SizedBox(height: 24),
-                          GameButton(
-                            label: 'Späť do hlavného menu',
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          const SizedBox(height: 12),
-                          TextButton(
-                            onPressed: start,
-                            child: const Text('Precvičiť ešte raz'),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            const Text('Štyri otázky. O kúsok viac vedomostí.'),
+                            const SizedBox(height: 24),
+                            CountUp(
+                              value: results.fold<int>(
+                                0,
+                                (s, r) => s + r.points,
+                              ),
+                              suffix: ' / 400 bodov',
+                              style: const TextStyle(
+                                fontSize: 30,
+                                fontWeight: FontWeight.w900,
+                                color: teal,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '+$awarded XP',
+                              style: const TextStyle(
+                                fontSize: 22,
+                                color: violet,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            if (awarded == 0)
+                              const Padding(
+                                padding: EdgeInsets.only(top: 8),
+                                child: Text(
+                                  'XP získaš pri zlepšení svojho najlepšieho výsledku.',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            const SizedBox(height: 24),
+                            GameButton(
+                              label: 'Späť do hlavného menu',
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                            const SizedBox(height: 12),
+                            TextButton(
+                              onPressed: start,
+                              child: const Text('Precvičiť ešte raz'),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   if (error != null && phase == LessonPhase.question)

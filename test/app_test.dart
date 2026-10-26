@@ -14,6 +14,41 @@ Future<AppStore> loadStore() async {
 }
 
 void main() {
+  testWidgets(
+    'day selector changes the lesson and the whole subject card opens it',
+    (tester) async {
+      tester.view.physicalSize = const Size(1440, 1300);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final store = (await tester.runAsync(loadStore))!;
+      await tester.pumpWidget(VedomaxApp(store: store));
+      await tester.pumpAndSettle();
+      final day = find.byKey(const ValueKey('day-2'));
+      await tester.ensureVisible(day);
+      await tester.pumpAndSettle();
+      await tester.tap(day);
+      await tester.pumpAndSettle();
+      expect(find.text('Racionálne čísla'), findsOneWidget);
+      await tester.ensureVisible(find.text('Racionálne čísla'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Racionálne čísla'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text(
+          store.lessons
+              .firstWhere(
+                (l) => l.grade == 8 && l.day == 2 && l.subject == 'math',
+              )
+              .questions
+              .first
+              .prompt,
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
   testWidgets('choice answer reveals correct option before scoring', (
     tester,
   ) async {

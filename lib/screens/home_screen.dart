@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/learning.dart';
 import '../services/app_store.dart';
 import '../widgets/game_widgets.dart';
+import '../widgets/motion.dart';
 import 'lesson_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -55,8 +56,24 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> openLesson(DailyLesson lesson) async {
     await Navigator.push(
       context,
-      MaterialPageRoute<void>(
-        builder: (_) => LessonScreen(lesson: lesson, store: store),
+      PageRouteBuilder<void>(
+        transitionDuration: motionDuration(context, 320),
+        reverseTransitionDuration: motionDuration(context, 220),
+        pageBuilder: (_, animation, secondary) =>
+            LessonScreen(lesson: lesson, store: store),
+        transitionsBuilder: (_, animation, secondary, child) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween(begin: const Offset(0, .035), end: Offset.zero)
+                .animate(
+                  CurvedAnimation(
+                    parent: animation,
+                    curve: Curves.easeOutCubic,
+                  ),
+                ),
+            child: child,
+          ),
+        ),
       ),
     );
     if (mounted) setState(() {});
@@ -232,23 +249,26 @@ class _HomeScreenState extends State<HomeScreen> {
                       alignment: Alignment.topCenter,
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 1250),
-                        child: ListView(
-                          padding: EdgeInsets.all(wide ? 36 : 20),
-                          children: [
-                            if (widget.bootError != null)
-                              _Notice(widget.bootError!),
-                            if (store.syncError != null)
-                              _Notice(
-                                store.syncError!,
-                                action: () => store.refreshProfile(),
-                              ),
-                            if (nav == 0) ...home(wide),
-                            if (nav == 1) ...plan(),
-                            if (nav == 2) ...board(),
-                            if (nav == 3)
-                              SettingsPanel(store: store, onAuth: auth),
-                            const SizedBox(height: 32),
-                          ],
+                        child: MotionSwitcher(
+                          child: ListView(
+                            key: ValueKey(nav),
+                            padding: EdgeInsets.all(wide ? 36 : 20),
+                            children: [
+                              if (widget.bootError != null)
+                                _Notice(widget.bootError!),
+                              if (store.syncError != null)
+                                _Notice(
+                                  store.syncError!,
+                                  action: () => store.refreshProfile(),
+                                ),
+                              if (nav == 0) ...home(wide),
+                              if (nav == 1) ...plan(),
+                              if (nav == 2) ...board(),
+                              if (nav == 3)
+                                SettingsPanel(store: store, onAuth: auth),
+                              const SizedBox(height: 32),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -407,10 +427,14 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context, c) {
           final children = [
             _Metric(
-              title: 'DNEŠNÝ POKROK',
+              title: selectedDay == store.currentDay
+                  ? 'DNEŠNÝ POKROK'
+                  : 'POKROK DŇA $selectedDay',
               value: '$done / 3 oblasti',
               icon: Icons.donut_large_rounded,
               color: teal,
+              progress: done / 3,
+              onTap: () => selectNav(1),
             ),
             _Metric(
               title: 'DENNÝ CIEĽ',
@@ -418,6 +442,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   '${(done * 4).clamp(0, store.dailyGoal)} / ${store.dailyGoal} otázok',
               icon: Icons.flag_rounded,
               color: violet,
+              progress: (done * 4 / store.dailyGoal).clamp(0, 1),
+              onTap: () => selectNav(3),
             ),
             _Metric(
               title: 'TVOJ REŽIM',
@@ -428,6 +454,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? Icons.cloud_done_rounded
                   : Icons.devices_rounded,
               color: const Color(0xffc18129),
+              onTap: auth,
             ),
           ];
           if (c.maxWidth > 680) {
@@ -457,6 +484,34 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
       const SizedBox(height: 30),
+      const Text('Vyber si deň', style: TextStyle(fontWeight: FontWeight.w800)),
+      const SizedBox(height: 10),
+      SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: List.generate(14, (i) {
+            final day = i + 1;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Tooltip(
+                message: 'Deň $day · ${store.completedOn(day)} z 3 oblastí',
+                child: ChoiceChip(
+                  key: ValueKey('day-$day'),
+                  label: Text(
+                    '$day${day == store.currentDay ? ' · dnes' : ''}',
+                  ),
+                  avatar: store.completedOn(day) == 3
+                      ? const Icon(Icons.check_circle_rounded, size: 16)
+                      : null,
+                  selected: selectedDay == day,
+                  onSelected: (_) => setState(() => selectedDay = day),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+      const SizedBox(height: 22),
       Row(
         children: [
           const Expanded(
@@ -481,6 +536,7 @@ class _HomeScreenState extends State<HomeScreen> {
           final cards = lessons
               .map(
                 (l) => _LessonCard(
+                  key: ValueKey(l.id),
                   lesson: l,
                   store: store,
                   onTap: () => openLesson(l),
@@ -771,54 +827,65 @@ class _Metric extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.progress,
+    required this.onTap,
   });
   final String title, value;
   final IconData icon;
   final Color color;
+  final double? progress;
+  final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Panel(
-    padding: const EdgeInsets.all(18),
-    child: Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: .1),
-            borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => InteractiveCard(
+    onTap: onTap,
+    color: color,
+    child: Panel(
+      padding: const EdgeInsets.all(18),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: progress == null
+                ? Icon(icon, color: color, size: 23)
+                : ProgressRing(value: progress!, color: color),
           ),
-          child: Icon(icon, color: color, size: 23),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 9,
-                  letterSpacing: .8,
-                  fontWeight: FontWeight.w700,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 9,
+                    letterSpacing: .8,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
+                const SizedBox(height: 5),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
 
 class _LessonCard extends StatelessWidget {
   const _LessonCard({
+    super.key,
     required this.lesson,
     required this.store,
     required this.onTap,
@@ -833,70 +900,79 @@ class _LessonCard extends StatelessWidget {
       'slovak' => (violet, Icons.menu_book_rounded, 'SLOVENČINA'),
       _ => (const Color(0xffcb8524), Icons.public_rounded, 'GEOGRAFIA'),
     };
-    return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Reveal(
+      child: InteractiveCard(
+        onTap: onTap,
+        color: color,
+        child: Panel(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: .1),
-                  borderRadius: BorderRadius.circular(17),
-                ),
-                child: Icon(icon, size: 30, color: color),
+              Row(
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: .1),
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                    child: Icon(icon, size: 30, color: color),
+                  ),
+                  const Spacer(),
+                  if (store.completed(lesson.id))
+                    const Icon(Icons.check_circle_rounded, color: teal)
+                  else
+                    const Text(
+                      '4 otázky',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
               ),
-              const Spacer(),
-              if (store.completed(lesson.id))
-                const Icon(Icons.check_circle_rounded, color: teal)
-              else
-                const Text(
-                  '4 otázky',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
+              const SizedBox(height: 24),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.4,
                 ),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 58,
+                child: Text(
+                  lesson.title,
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                    height: 1.3,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                store.completed(lesson.id)
+                    ? 'Najlepší výsledok: ${store.best(lesson.id)} %'
+                    : 'Objavuj, premýšľaj, vyskúšaj.',
+                style: const TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 22),
+              GameButton(
+                label: store.completed(lesson.id)
+                    ? 'Precvičiť znova'
+                    : 'Začať oblasť',
+                icon: Icons.arrow_forward_rounded,
+                color: color,
+                onPressed: onTap,
+              ),
             ],
           ),
-          const SizedBox(height: 24),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.4,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 58,
-            child: Text(
-              lesson.title,
-              style: const TextStyle(
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-                height: 1.3,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            store.completed(lesson.id)
-                ? 'Najlepší výsledok: ${store.best(lesson.id)} %'
-                : 'Objavuj, premýšľaj, vyskúšaj.',
-            style: const TextStyle(fontSize: 12),
-          ),
-          const SizedBox(height: 22),
-          GameButton(
-            label: store.completed(lesson.id)
-                ? 'Precvičiť znova'
-                : 'Začať oblasť',
-            icon: Icons.arrow_forward_rounded,
-            color: color,
-            onPressed: onTap,
-          ),
-        ],
+        ),
       ),
     );
   }

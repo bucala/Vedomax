@@ -1,5 +1,12 @@
 # Validation – Flutter 2.0, 2026-10-26
 
+## Interactive Flutter interface and repository overview
+
+- Added finite section/route transitions, animated whole-card hover/focus/press feedback, progress rings, 14-day quick selection, answer selection feedback and one-shot confetti. All new motion respects reduced-motion preferences; outgoing page transitions do not accept input or duplicate accessibility content.
+- Added interaction checks for day selection and whole-card navigation, pointer/keyboard activation, and nonblocking celebrations that stop their animation ticker. The complete suite contains 16 passing tests.
+- Refreshed the reviewed desktop render to include the day selector and progress rings.
+- Reworked the GitHub README with a locally generated animated banner (and static reduced-motion alternative), linked render gallery, collapsible walkthroughs, Mermaid learning flow and preserved technical instructions in `docs/DEVELOPMENT.md`.
+
 ## OBJ mascot animation update
 
 - Imported the supplied Meshy OBJ/MTL/PNG locally in Blender 5.1.2, preserving its texture and original Downloads files. Added a deformation skeleton, geodesic arm weights and two looping animation actions.
