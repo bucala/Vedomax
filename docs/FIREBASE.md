@@ -30,13 +30,26 @@ For browser-only deployment, transfer the prepared `build/web` directory and `fi
 
 ## Deploy from the directory containing firebase.json
 
-Run in a terminal (Cloud Shell is suitable), never in Supabase SQL Editor. Replace `YOUR_FIREBASE_PROJECT_ID` with the verified project ID:
+Run in a terminal (Cloud Shell is suitable), never in Supabase SQL Editor. The selected project ID is `vedomax`:
 
 ```sh
 npx --yes firebase-tools@14 login --no-localhost
-npx --yes firebase-tools@14 deploy --only hosting --project YOUR_FIREBASE_PROJECT_ID
+npx --yes firebase-tools@14 deploy --only hosting --project vedomax
 ```
 
 Complete Google authorization only in Google's browser flow. The CLI prints the actual Hosting URL after successful deployment; do not assume a project ID or invent a publication URL. Deployment publishes the web application, not a native Android/iOS package.
 
 After publication, in Supabase → Authentication → URL Configuration, set the Site URL to the actual Hosting URL and allow only the specific redirect paths needed for your authentication flow. Test registration, email confirmation, login, lesson completion and profile XP persistence on the published site. Do not declare hosted mode working from a static HTML response alone.
+
+## Prepared browser-only bundle
+
+The current cloud workspace has `/workspace/scratch/vedomax-firebase.zip`, built with the supplied public Supabase configuration. This artifact is not committed to Git. Download it, upload it through the Cloud Shell menu (Upload), and run:
+
+```sh
+unzip vedomax-firebase.zip
+cd vedomax-hosting
+npx --yes firebase-tools@14 login --no-localhost
+npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+```
+
+The ZIP contains `firebase.json`, `.firebaserc` and `build/web` under `vedomax-hosting/`. It excludes local environment configuration and source secrets. Use an empty extraction directory for a fresh release. The user must complete Google authentication and have Hosting deployment access to this project. The selected ID has not yet been validated through an authenticated Firebase API operation. This archive was created before native Android/iOS packaging and is for web Hosting only.
