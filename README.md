@@ -1,5 +1,7 @@
 # Vedomax
 
+**Current testing workflow:** open the app without any account using `config/demo.json`. Three bundled lessons are available; no Supabase initialization, login, signup or SMTP is needed. Scores are shown for the current attempt; XP/progress are not persisted. Email authentication remains available for a later backend-enabled build.
+
 Flutter / Riverpod / Supabase MVP for Slovak pupils in grades 8–9. Includes a playable, account-free demo, authenticated mode, three practice mechanics, server-graded XP, streaks, private profiles, progression and an opt-in leaderboard RPC.
 
 **Status:** Flutter dependencies are installed, static analysis is clean and all 16 tests pass. Hosted Supabase connectivity and authentication remain unverified because the project domain is pending network approval. Validation results and limitations are recorded in `docs/VALIDATION.md`. Sample curriculum is a **draft**, not a claim of NIVAM certification or complete iŠVP coverage.
@@ -51,7 +53,16 @@ Global content is read-only to authenticated clients. Users read only their own 
 
 `leaderboard()` exposes only opted-in pseudonyms and XP (top 50); full profiles remain private. The initial UI includes profile loading and XP refresh after completion; profile editing and leaderboard UI are roadmap items. Public practice hints (detective feedback) are intentionally available; this is not a proctored exam/anti-bot system.
 
-## Email authentication
+## Build the account-free test version
+
+```sh
+./scripts/build_demo.sh
+flutter run -d web-server --web-hostname 0.0.0.0 --web-port 8080 --dart-define-from-file=config/demo.json
+```
+
+The build helper uses only the public demo configuration and never reads `.env.supabase.json`. Do not pass the Supabase config when preparing the account-free release. The demo does not change RLS, email confirmation, users, profiles or progress in the hosted database.
+
+## Email authentication (optional later)
 
 The current app supports **email/password only**. Google sign-in has been removed from the UI and repository interface. Disable Google separately in Supabase Authentication → Sign In / Providers → Google → Save; removing a frontend button does not disable an Auth provider on the server. No account/profile/progression data is deleted by this change.
 

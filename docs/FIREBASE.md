@@ -1,6 +1,6 @@
 # Firebase Hosting
 
-Current release: **email/password only**. Use `/workspace/scratch/vedomax-email-only.zip`; the older Google-login and auth-return archives below are historical. See `docs/AUTH_SETUP.md` for server-side Google disablement and SMTP setup.
+Current test release: **no login or account required**. Use `/workspace/scratch/vedomax-demo.zip`. It is compiled with `config/demo.json` and uses three bundled lessons without connecting to Supabase. The older email-only/Google-login/auth-return archives below are historical.
 
 Firebase serves the compiled Flutter web app; Supabase continues to provide authentication and the database. Firestore, Firebase Auth and a Firebase client SDK are not required for this architecture.
 
@@ -81,3 +81,16 @@ npx --yes firebase-tools@14 deploy --only hosting --project vedomax
 ```
 
 Use a fresh extraction directory. This publishes the new frontend; it does not modify Supabase provider settings or configure SMTP.
+
+## Current account-free test release — Windows PowerShell
+
+Download `/workspace/scratch/vedomax-demo.zip` to `C:\GitHub\TEST`, then run:
+
+```powershell
+cd C:\GitHub\TEST
+Expand-Archive -Path .\vedomax-demo.zip -DestinationPath .\demo-release
+cd .\demo-release\vedomax-hosting
+npx --yes firebase-tools@14 deploy --only hosting --project vedomax
+```
+
+After deployment, open https://vedomax.web.app and hard-refresh. The dashboard should say “DEMO • Bez účtu • XP sa neukladá”, expose all three practice lessons and show no login form. No domain purchase, SMTP setup, account creation or Supabase changes are required for this test build. Progress is not persisted across visits; each demo attempt awards zero stored XP. This is a web-testing release, not full nine-subject content.

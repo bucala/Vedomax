@@ -48,6 +48,11 @@ void main() {
   testWidgets('demo navigation and successful rescue', (WidgetTester tester) async {
     await tester.pumpWidget(const ProviderScope(child: VedomaxApp()));
     await tester.pumpAndSettle();
+    expect(find.text('DEMO • Bez účtu • XP sa neukladá'), findsOneWidget);
+    expect(find.text('Prihlásiť sa'), findsNothing);
+    expect(find.text('Vytvoriť účet'), findsNothing);
+    expect(find.text('Slovenčina • Vetriť chybu'), findsOneWidget);
+    expect(find.text('Geografia • Slepá mapa'), findsOneWidget);
     await tester.tap(find.text('Matematika • Zachráň prieskumníka'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), '5');

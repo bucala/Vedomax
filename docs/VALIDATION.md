@@ -61,3 +61,11 @@ The auth harness is for a fresh ordinary PostgreSQL database only, never a real 
 - Release web build passed; pre-existing CupertinoIcons font warning unchanged. The email-only deployment ZIP was checked for integrity and excludes environment files.
 - No auth users/profiles/progression were deleted. Google remains a server-side provider until the project owner disables it in Supabase. No admin connection exists in this environment.
 - SMTP delivery remains unverified; no test accounts or emails were sent by the agent. The project owner's SMTP configuration and mail/Auth logs are required to diagnose the original missing confirmation email. Email confirmation has not been disabled as a workaround.
+
+## Current test release: no authentication
+
+- Reused the existing demo architecture with an explicit public `config/demo.json` and reproducible `scripts/build_demo.sh`. This avoids Supabase initialization and auth gates altogether; no backend policy, user or account setting was relaxed or removed.
+- Static analysis: clean. All 16 tests passed. The demo widget test explicitly asserts that all three lesson entries are available, the demo banner is shown, no login/registration action appears and the math challenge can be completed successfully without initializing Supabase.
+- Frozen-lockfile dependency installation and release demo build succeeded. The demo build uses no local Supabase configuration; its compiled JavaScript does not contain the configured Supabase project's hostname. This check complements the behavior test, not a claim of total offline support for Flutter engine resources.
+- Local static HTTP checks passed for index, bootstrap and main JavaScript. The temporary server was stopped. ZIP integrity and absence of environment files were verified for `/workspace/scratch/vedomax-demo.zip`.
+- Scores are per attempt and XP/progression are not persisted in the demo. Only the three bundled mechanics are available; this is not full nine-subject content. Firebase publication of this new demo still requires the user's deploy command. SMTP delivery remains unresolved but is not required for testing this build.
