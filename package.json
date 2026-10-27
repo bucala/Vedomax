@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node scripts/flutter.mjs dev",
     "build": "node scripts/flutter.mjs build",
+    "deploy": "npx --yes firebase-tools@14.27.0 deploy --only hosting --project vedomax",
     "lint": "node scripts/flutter.mjs analyze",
     "test": "node scripts/flutter.mjs test",
     "test:db": "node scripts/test_database.mjs"

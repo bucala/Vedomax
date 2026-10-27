@@ -21,4 +21,15 @@ const env={...process.env};
 if(win) env.PATH=[path.dirname(flutter),path.join(env.SystemRoot||'C:\\Windows','System32'),env.SystemRoot||'C:\\Windows',env.PATH].join(';');
 const result=win?spawnSync(path.join(env.SystemRoot||'C:\\Windows','System32','cmd.exe'),['/d','/s','/c',`flutter.bat ${args.join(' ')}`],{stdio:'inherit',env}):
   spawnSync(flutter,args,{stdio:'inherit',env});
+if(mode==='build' && result.status===0) {
+  const revision=spawnSync('git',['rev-parse','HEAD'],{encoding:'utf8'});
+  const bank=JSON.parse(fs.readFileSync('assets/content/fortnight.json','utf8'));
+  const version=JSON.parse(fs.readFileSync('package.json','utf8')).version;
+  fs.writeFileSync('build/web/release.json',JSON.stringify({
+    app:'Vedomax',version,commit:revision.status===0?revision.stdout.trim():null,
+    dailyLessons:bank.lessons.length,
+    questions:bank.lessons.reduce((count,lesson)=>count+lesson.questions.length,0),
+    mascotAnimation:true,interactiveDaySelector:true,
+  },null,2)+'\n');
+}
 process.exit(result.status??1);
